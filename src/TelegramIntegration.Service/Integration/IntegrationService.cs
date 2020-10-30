@@ -8,6 +8,7 @@
     using TelegramIntegration.Repository.Telegram;
     using TelegramIntegration.Domain.Entities.Send_Messages;
     using TelegramIntegration.Domain.Entities.Returns.Send;
+    using System.Text.RegularExpressions;
 
     public class IntegrationService
     {
@@ -30,7 +31,9 @@
                     {
                         if (message.message.text.Contains("DeviceID:"))
                         {
+                            message.message.text = Regex.Replace(message.message.text, @"\s+", "");
                             string[] device_id = message.message.text.Split(':');
+
 
                             if(device_id[1].Length == 12)
                             {
