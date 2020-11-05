@@ -17,6 +17,8 @@
             IntegrationRepository repo = new IntegrationRepository();
             CallTelegramAPI telegram = new CallTelegramAPI();
             ProcessReturn pr = new ProcessReturn();
+            DeviceChat dc = new DeviceChat();
+            NewMessage newMessage = new NewMessage();
 
             foreach (TelegramUpdates message in messages.result)
             {
@@ -33,19 +35,16 @@
                         {
                             message.message.text = Regex.Replace(message.message.text, @"\s+", "");
                             string[] device_id = message.message.text.Split(':');
-
-
-                            if(device_id[1].Length == 12)
+                           
+                            if (device_id[1].Length == 12)
                             {
                                 if (!await repo.finRelationByDeviceId(device_id[1], message.message.chat.id))
                                 {
-                                    DeviceChat dc = new DeviceChat();
                                     dc.device_id = device_id[1];
                                     dc.chat_id = message.message.chat.id;
 
                                     if (await repo.includeDeviceChatRelation(dc))
                                     {
-                                        NewMessage newMessage = new NewMessage();
                                         newMessage.chat_id = dc.chat_id;
                                         newMessage.text = "Integração concluida com sucesso!";
 
@@ -55,6 +54,9 @@
                                     }
                                     else
                                     {
+                                        newMessage.chat_id = message.message.chat.id;
+                                        newMessage.text = "Houve um erro na integração, favor inserir um DeviceID valido";
+                                        await telegram.sendMessageAsync(newMessage);
                                         pr.QtdFail++;
                                     }
                                 }
@@ -62,16 +64,25 @@
                             }
                             else
                             {
+                                newMessage.chat_id = message.message.chat.id;
+                                newMessage.text = "Houve um erro na integração, quantidade de caracteres incorreta!";
+                                await telegram.sendMessageAsync(newMessage);
                                 pr.QtdFail++;
                             }
                         }
                         else
                         {
+                            newMessage.chat_id = message.message.chat.id;
+                            newMessage.text = "Houve um erro na integração, favor inserir uma mensagem válida";
+                            await telegram.sendMessageAsync(newMessage);
                             pr.QtdFail++;
                         }
                     }
                     else
                     {
+                        newMessage.chat_id = message.message.chat.id;
+                        newMessage.text = "Houve um erro na integração, tente novamente mais tarde";
+                        await telegram.sendMessageAsync(newMessage);
                         pr.QtdFail++;
                     }
                     
